@@ -1,76 +1,115 @@
-import SimpleLightbox from "simplelightbox";
-import 'simplelightbox/dist/simple-lightbox.min.css';
 import './css/style.css';
-import NewsApiService from './js/news-service';
 import Notiflix from 'notiflix';
-import LoadMoreBtn from "./js/load_more_button";
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+import { fetchImages, firstPage } from "./js/news-service";
 
-
-const searchForm = document.querySelector('.search-form');
-const articlesContainer = document.querySelector('.gallery');
-    
-
-const loadMoreBtn = new LoadMoreBtn({
-    selector: '[data-action="load-more"]',
-    hidden: true,
-});
-
-const newApiService = new NewsApiService();
-
-searchForm.addEventListener('submit', onSearch);
-
-function onSearch (e) {
-    e.preventDefault();
-    newApiService.searchQuery = e.currentTarget.elements.searchQuery.value;
-    if (newApiService.searchQuery === ''){
-        return Notiflix.Notify.failure('Введите что-то для поиска изображений!');
-        
-      };
-    loadMoreBtn.show();
-    loadMoreBtn.disabled();
-    newApiService.resetPage();
-
-    
-    newApiService.fetchArticles().then(hits => {
-        clearHitsContainer ();
-        appendArticlesMarkup(hits);
-        loadMoreBtn.enable();
-    });
-   
+const refs = {
+  form: document.querySelector('#search-form'),
+  gallery: document.querySelector('.gallery'),
+  loadMoreButton: document.querySelector('.load-more'),
 };
 
-loadMoreBtn.refs.button.addEventListener('click', onLoadMore);
+let pictureName = '';
 
+hideButton(refs.loadMoreButton);
 
-function onLoadMore () {
-    newApiService.fetchArticles().then(appendArticlesMarkup);
+refs.form.addEventListener('submit', Search);
+refs.loadMoreButton.addEventListener('click', LoadMore);
+
+function Search(e) {
+  e.preventDefault();
+  pictureName = e.currentTarget.searchQuery.value;
+
+  firstPage();
+
+  hideButton(refs.loadMoreButton);
+
+  fetchImages(pictureName)
+    .then(images => {
+      const imagesArray = images.data.hits;
+      const totalImages = images.data.totalHits;
+      // const lenghtGallery = refs.gallery.querySelectorAll('.gallery__item').length;
+
+    if (imagesArray.length === 0) {
+      return Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.',);
+    } else {
+        clear();
+        markupGallery(imagesArray);
+        new SimpleLightbox('.gallery a', { captionDelay: 250, showCounter: false });
+        Notiflix.Notify.success(`Hooray! We found ${totalImages} images.`);
+        showButton(refs.loadMoreButton);
+      
+          // console.log(lenghtGallery);
+          // console.log(totalImages);
+      }
+    });
 }
 
-function appendArticlesMarkup(hits) {
-    const markupimg = hits.map(item =>
-        `<div class="photo-card">
-        <a href="${item.largeImageURL}" class="gallery__link">
-            <img src="${item.previewURL}" alt="${item.tags}" loading="lazy" width='250' height='200' /></a>
+
+function LoadMore() {
+  fetchImages(pictureName)
+    .then(images => {
+      const imagesArray = images.data.hits;
+      const totalImages = images.data.totalHits;
+      const lenghtGallery = refs.gallery.querySelectorAll('.gallery__item').length+40;
+      
+      markupGallery(imagesArray);
+      new SimpleLightbox('.gallery a', { captionDelay: 250, showCounter: false });
+
+        // console.log(lenghtGallery);
+        // console.log(totalImages);
+
+      if (lenghtGallery >= totalImages) {
+        Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.");
+        hideButton(refs.loadMoreButton);
+      }
+    })
+  
+    .catch(error => {
+      console.log(error);
+      hideButton(refs.loadMoreButton);
+    });
+}
+
+function markupGallery(images) {
+  const markup = images
+    .map(image => {
+      return `
+        <a class="gallery__item" href="${image.largeImageURL}">
+          <div class="photo-card">
+            <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
             <div class="info">
-                <p class="info-item">
-                <b>Likes: ${item.likes}</b>
-                </p>
-                <p class="info-item">
-                <b>Views: ${item.views}</b>
-                </p>
-                <p class="info-item">
-                <b>Comments: ${item.comments}</b>
-                </p>
-                <p class="info-item">
-                <b>Downloads: ${item.downloads}</b>
-                </p>
+              <p class="info-item">
+                <b>Likes</b>
+                ${image.likes}
+              </p>
+              <p class="info-item">
+                <b>Views</b>
+                ${image.views}
+              </p>
+              <p class="info-item">
+                <b>Comments</b>
+                ${image.comments}
+              </p>
+              <p class="info-item">
+                <b>Downloads</b>
+                ${image.downloads}
+              </p>
             </div>
-        </div>`).join('');
-    
-    articlesContainer.insertAdjacentHTML('beforeend', markupimg);
-    let gallery = new SimpleLightbox('.gallery a', { captionsData: 'alt', captionDelay: 250 });
+          </div>
+        </a>`;
+    })
+    .join('');
+    refs.gallery.insertAdjacentHTML('beforeend', markup);
 }
 
-function clearHitsContainer () {
-    articlesContainer.innerHTML = '';
-   }
+function clear() {
+  refs.gallery.innerHTML = '';
+}
+function hideButton(item) {
+    item.classList.add('visually-hidden');
+}
+function showButton(item) {
+    item.classList.remove('visually-hidden');
+}

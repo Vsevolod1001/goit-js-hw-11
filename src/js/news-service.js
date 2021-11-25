@@ -1,35 +1,28 @@
-import axios from "axios";
-import Notiflix from 'notiflix';
+import axios from 'axios';
+export { fetchImages, firstPage };
 
-export default class NewsApiService {
-    constructor () {
-        this.searchQuery = '';
-        this.page = 1;
-    }
-
-    fetchArticles() {
     
-        const url = `https://pixabay.com/api/?key=24468544-3d8c73577448d4a3445184243&q=${this.searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&page=${this.page}&per_page=40&lang=ru+en`;
-        return fetch(url)
-        .then(r=>r.json())
-        .then(data => {
-            console.log(data)
-            this.page += 1;
-            if (data.hits.length === 0) {
-                return Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-            }
-            return data.hits;
-        });
-    }
+const BASE_URL = 'https://pixabay.com/api/';
+const API_KEY = `24425918-1c58292ec38f4df582c31de2d`;
+let page = 1;
 
-     resetPage() {
-         this.page = 1;
-     }
-     get query() {
-         return this.searchQuery;
-     }
+async function fetchImages(pictureName) {
+  const FULL_URL =
+    `${BASE_URL}?key=${API_KEY}&q=${pictureName}
+    &image_type=photo&orientation=horizontal&safesearch=true&page=${page}
+    &per_page=${40}`;
+  
+  try {
+    const images = await axios.get(FULL_URL);
+    page += 1;
+    // console.log(images);     
+    return await images;  
+  }
+  catch (error) {
+    console.log(error);
+  }
+}
 
-     set query(newQuery) {
-         this.searchQuery = newQuery;
-     }
+function firstPage() {
+  page = 1;
 }
