@@ -30,7 +30,7 @@ input {
   display: flex;
   justify-content: center;
   padding: 20px 0;
-  background-color: #2e4dd4;
+  background-color: #410927;
 }
 
 .load-more {
@@ -82,14 +82,10 @@ input {
   margin-left: 15px;
   margin-top: 15px;
   flex-basis: calc((100% - 60px) / 4);
-  transition-property: transform;
-  transition-duration: 250ms;
+  
 }
 
-.gallery__item:hover,
-.gallery__item:focus {
-  transform: scale(1.05);
-}
+
 
 .info {
   display: flex;

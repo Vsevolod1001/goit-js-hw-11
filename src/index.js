@@ -2,30 +2,30 @@ import './css/style.css';
 import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import { fetchImages, firstPage } from "./js/news-service";
+import { fetchApi, firstPage } from "./js/news-service";
 
 const refs = {
   form: document.querySelector('#search-form'),
   gallery: document.querySelector('.gallery'),
-  loadMoreButton: document.querySelector('.load-more'),
+  loadMoreBtn: document.querySelector('.load-more'),
 };
 
-let pictureName = '';
+let searchQuery = '';
 
-hideButton(refs.loadMoreButton);
+hiddenButton(refs.loadMoreBtn);
 
 refs.form.addEventListener('submit', Search);
 refs.loadMoreButton.addEventListener('click', LoadMore);
 
 function Search(e) {
   e.preventDefault();
-  pictureName = e.currentTarget.searchQuery.value;
+  searchQuery = e.currentTarget.searchQuery.value;
 
   firstPage();
 
-  hideButton(refs.loadMoreButton);
+  hiddenButton(refs.loadMoreBtn);
 
-  fetchImages(pictureName)
+  fetchApi(searchQuery)
     .then(images => {
       const imagesArray = images.data.hits;
       const totalImages = images.data.totalHits;
@@ -38,7 +38,7 @@ function Search(e) {
         markupGallery(imagesArray);
         new SimpleLightbox('.gallery a', { captionDelay: 250, showCounter: false });
         Notiflix.Notify.success(`Hooray! We found ${totalImages} images.`);
-        showButton(refs.loadMoreButton);
+        showButton(refs.loadMoreBtn);
       
           // console.log(lenghtGallery);
           // console.log(totalImages);
@@ -48,7 +48,7 @@ function Search(e) {
 
 
 function LoadMore() {
-  fetchImages(pictureName)
+    fetchApi(searchQuery)
     .then(images => {
       const imagesArray = images.data.hits;
       const totalImages = images.data.totalHits;
@@ -62,13 +62,13 @@ function LoadMore() {
 
       if (lenghtGallery >= totalImages) {
         Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.");
-        hideButton(refs.loadMoreButton);
+        hiddenButton(refs.loadMoreButton);
       }
     })
   
     .catch(error => {
       console.log(error);
-      hideButton(refs.loadMoreButton);
+      hiddenButton(refs.loadMoreBtn);
     });
 }
 
@@ -107,7 +107,7 @@ function markupGallery(images) {
 function clear() {
   refs.gallery.innerHTML = '';
 }
-function hideButton(item) {
+function hiddenButton(item) {
     item.classList.add('visually-hidden');
 }
 function showButton(item) {
