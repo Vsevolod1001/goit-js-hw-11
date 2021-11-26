@@ -15,7 +15,7 @@ let searchQuery = '';
 hiddenButton(refs.loadMoreBtn);
 
 refs.form.addEventListener('submit', Search);
-refs.loadMoreButton.addEventListener('click', LoadMore);
+refs.loadMoreBtn.addEventListener('click', LoadMore);
 
 function Search(e) {
   e.preventDefault();
@@ -62,7 +62,7 @@ function LoadMore() {
 
       if (lenghtGallery >= totalImages) {
         Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.");
-        hiddenButton(refs.loadMoreButton);
+        hiddenButton(refs.loadMoreBtn);
       }
     })
   
